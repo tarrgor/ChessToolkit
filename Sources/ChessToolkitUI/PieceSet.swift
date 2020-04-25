@@ -14,7 +14,7 @@ import AppKit
 
 import ChessToolkit
 
-public class CTPieceSet {
+public class PieceSet {
   
   fileprivate var _cache = Dictionary<CTPiece, ImageType>()
   
@@ -28,7 +28,7 @@ public class CTPieceSet {
   
   // MARK: Image handling
   
-  func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> ImageType? {
+  func imageForPiece(_ piece: CTPiece) -> ImageType? {
     guard let filename = determineFilename(forSetWithName: name, piece: piece) else { return nil }
 
     // Create and return image

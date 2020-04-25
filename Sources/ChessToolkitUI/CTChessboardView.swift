@@ -28,10 +28,6 @@ open class CTChessboardView : ViewType {
   internal var _dragFromSquare: CTSquare?
   internal var _draggedPiece: CTPiece?
   internal var _dragImage: ViewType?
-  #else
-  internal var _panGestureRecognizer: UIPanGestureRecognizer?
-  internal var _panStartLocation: CGPoint?
-  internal var _focusViews: [ImageViewType] = Array<ImageViewType>(repeating: UIImageView(), count: 64)
   #endif
   
   fileprivate var _markings = Array<CTSquareMarkingStyle?>(repeating: nil, count: 144)
@@ -84,7 +80,7 @@ open class CTChessboardView : ViewType {
   @IBInspectable open var scaledPieceBackgroundAlpha: CGFloat = 0.4
   
   open var markingStyle: CTSquareMarkingStyle = .transparentFill
-  open var pieceSet: CTPieceSet?
+  open var pieceSet: PieceSet?
   
   var squareSize: CGFloat {
     return _squareSize
@@ -112,7 +108,7 @@ open class CTChessboardView : ViewType {
     initializeView()
   }
   
-  public convenience init(frame: CGRect, pieceSet: CTPieceSet) {
+  public convenience init(frame: CGRect, pieceSet: PieceSet) {
     self.init(frame: frame)
     self.pieceSet = pieceSet
   }
@@ -187,17 +183,13 @@ extension CTChessboardView {
 
         let square = self.isBoardFlipped ? CTSquare.fromRow(7 - row, column: 7 - col) : CTSquare.fromRow(row, column: col)
         
-        #if os(iOS)
+        #if !os(tvOS)
           if _dragFromSquare == nil || square != _dragFromSquare {
             if let image = pieceSet?.imageForPiece(position.pieceAt(square!)) {
               image.draw(in: squareRect.insetBy(dx: _squareSize * 0.12, dy: _squareSize * 0.12))
             }
           }
-        #elseif os(tvOS)
-          if let image = pieceSet?.imageForPiece(position.pieceAt(square!)) {
-            image.draw(in: squareRect.insetBy(dx: _squareSize * 0.12, dy: _squareSize * 0.12))
-          }
-        #elseif os(macOS)
+        #else
           if let image = pieceSet?.imageForPiece(position.pieceAt(square!)) {
             image.draw(in: squareRect.insetBy(dx: _squareSize * 0.12, dy: _squareSize * 0.12))
           }
@@ -323,7 +315,7 @@ extension CTChessboardView {
       pieceSize = pieceSize * 1.4
     }
     
-    if let pieceImage = pieceSet?.imageForPiece(piece, size: CGSize(width: pieceSize, height: pieceSize)) {
+    if let pieceImage = pieceSet?.imageForPiece(piece) {
       let imageView = ImageViewType(image: pieceImage)
       imageView.translatesAutoresizingMaskIntoConstraints = false
       
@@ -345,7 +337,7 @@ extension CTChessboardView {
       imageView.centerYAnchor.constraint(equalTo: backgroundView.centerYAnchor).isActive = true
       
       #if os(iOS)
-        self._dragImage = backgroundView
+      self._dragImage = backgroundView
       #endif
     }
   }
