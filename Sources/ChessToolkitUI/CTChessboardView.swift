@@ -14,18 +14,6 @@ import ChessToolkit
 let kLabelXOffsetFactor: CGFloat = 0.068
 let kLabelYOffsetFactor: CGFloat = 0.045
 
-#if !os(macOS)
-public typealias ViewType = UIView
-public typealias ImageViewType = UIImageView
-public typealias FontType = UIFont
-public typealias ColorType = UIColor
-#else
-public typealias ViewType = NSView
-public typealias ImageViewType = NSImageView
-public typealias FontType = NSFont
-public typealias ColorType = NSColor
-#endif
-
 @IBDesignable
 open class CTChessboardView : ViewType {
   
@@ -35,15 +23,15 @@ open class CTChessboardView : ViewType {
   fileprivate var _referenceRect: CGRect = CGRect.zero
   fileprivate var _squareSize: CGFloat = 0
   
-  #if os(iOS)
-  internal var _draggedItem: UIImage?
+  #if !os(tvOS)
+  internal var _draggedItem: ImageType?
   internal var _dragFromSquare: CTSquare?
   internal var _draggedPiece: CTPiece?
-  internal var _dragImage: UIView?
-  #elseif os(tvOS)
+  internal var _dragImage: ViewType?
+  #else
   internal var _panGestureRecognizer: UIPanGestureRecognizer?
   internal var _panStartLocation: CGPoint?
-  internal var _focusViews: [UIImageView] = Array<UIImageView>(repeating: UIImageView(), count: 64)
+  internal var _focusViews: [ImageViewType] = Array<ImageViewType>(repeating: UIImageView(), count: 64)
   #endif
   
   fileprivate var _markings = Array<CTSquareMarkingStyle?>(repeating: nil, count: 144)
@@ -133,7 +121,7 @@ open class CTChessboardView : ViewType {
 extension CTChessboardView {
   
   func initializeView() {
-    #if os(iOS)
+    #if !os(tvOS)
     
     // reset all dragging helper fields
     self._draggedItem = nil
@@ -170,11 +158,7 @@ extension CTChessboardView {
   fileprivate func drawBorder() {
     if self.border {
       self.borderColor.setFill()
-      #if !os(macOS)
-      UIRectFill(self.bounds)
-      #else
-      self.bounds.fill()
-      #endif
+      DrawingUtils.fillRectangle(self.bounds)
     }
   }
   
@@ -190,11 +174,7 @@ extension CTChessboardView {
           self.lightSquareColor.set()
         }
         
-        #if !os(macOS)
-        UIRectFill(squareRect)
-        #else
-        squareRect.fill()
-        #endif
+        DrawingUtils.fillRectangle(squareRect)
 
         if (self.squareLabels) {
           if (col == 0) {
@@ -266,19 +246,11 @@ extension CTChessboardView {
           let rect = rectForRow(row, col: col)
           if self.markingStyle == .border {
             self.markingColor.set()
-            #if !os(macOS)
-            UIRectFrame(rect)
-            #else
-            rect.frame()
-            #endif
+            DrawingUtils.fillRectangle(rect)
           } else {
             let color = self.markingColor.withAlphaComponent(self.markingAlpha)
             color.setFill()
-            #if !os(macOS)
-            UIRectFillUsingBlendMode(rect, CGBlendMode.normal)
-            #else
-            rect.fill()
-            #endif
+            DrawingUtils.fillRectangle(rect) // using CGBlendMode.normal?
           }
         }
       }
