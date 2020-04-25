@@ -16,29 +16,18 @@ import ChessToolkit
 
 public class CTPieceSet {
   
-  fileprivate let kFileNamePrefix = "FileName."
+  fileprivate var _cache = Dictionary<CTPiece, ImageType>()
   
-  fileprivate var _configuration: Dictionary<CTPiece, String>!
-  
-  #if !os(macOS)
-  fileprivate var _cache = Dictionary<CTPiece, UIImage>()
-  #else
-  fileprivate var _cache = Dictionary<CTPiece, NSImage>()
-  #endif
-  
-  var bundle: Bundle
   var name: String
   
   // MARK: Initialization
   
-  public init(bundle: Bundle, name: String) {
-    self.bundle = bundle
+  public init(name: String) {
     self.name = name
   }
   
   // MARK: Image handling
   
-  #if !os(macOS)
   func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> UIImage? {
     guard let filename = determineFilename(forSetWithName: name, piece: piece) else { return nil }
 
@@ -48,7 +37,7 @@ public class CTPieceSet {
     if let cachedImg = _cache[piece] {
       image = cachedImg
     } else {
-      guard let pdfImage = UIImage(named: filename, in: bundle, compatibleWith: nil) else {
+      guard let pdfImage = ImageType(named: filename) else {
         print("Cannot load image for pieceSet \(name): \(filename)")
         return nil
       }
@@ -58,25 +47,6 @@ public class CTPieceSet {
     
     return image
   }
-  #else
-  func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> NSImage? {
-    guard let filename = determineFilename(forSetWithName: name, piece: piece) else { return nil }
-
-    // Create and return image
-    var image: NSImage? = nil
-    
-    if let cachedImg = _cache[piece] {
-      image = cachedImg
-    } else {
-      if let pdfImage = NSImage(named: NSImage.Name(filename)) {
-        image = pdfImage
-        _cache.updateValue(image!, forKey: piece)
-      }
-    }
-    
-    return image
-  }
-  #endif
   
   // MARK: Private methods
 
