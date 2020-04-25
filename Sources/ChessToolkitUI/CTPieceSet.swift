@@ -28,11 +28,11 @@ public class CTPieceSet {
   
   // MARK: Image handling
   
-  func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> UIImage? {
+  func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> ImageType? {
     guard let filename = determineFilename(forSetWithName: name, piece: piece) else { return nil }
 
     // Create and return image
-    var image: UIImage? = nil
+    var image: ImageType? = nil
     
     if let cachedImg = _cache[piece] {
       image = cachedImg
