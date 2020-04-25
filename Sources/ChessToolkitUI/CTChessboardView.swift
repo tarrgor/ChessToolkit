@@ -217,6 +217,10 @@ extension CTChessboardView {
           if let image = pieceSet?.imageForPiece(position.pieceAt(square!)) {
             image.draw(in: squareRect.insetBy(dx: _squareSize * 0.12, dy: _squareSize * 0.12))
           }
+        #elseif os(macOS)
+          if let image = pieceSet?.imageForPiece(position.pieceAt(square!)) {
+            image.draw(in: squareRect.insetBy(dx: _squareSize * 0.12, dy: _squareSize * 0.12))
+          }
         #endif
       }
     }

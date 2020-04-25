@@ -34,44 +34,43 @@ public class CTPieceSet {
   public init(bundle: Bundle, name: String) {
     self.bundle = bundle
     self.name = name
-    
-    loadConfiguration()
   }
   
   // MARK: Image handling
   
   #if !os(macOS)
   func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> UIImage? {
+    guard let filename = determineFilename(forSetWithName: name, piece: piece) else { return nil }
+
     // Create and return image
     var image: UIImage? = nil
     
     if let cachedImg = _cache[piece] {
       image = cachedImg
     } else {
-      if let name = _configuration[piece] {
-        if let pdfImage = UIImage(named: name, in: bundle, compatibleWith: nil) {
-          image = pdfImage
-          _cache.updateValue(image!, forKey: piece)
-        }
+      guard let pdfImage = UIImage(named: filename, in: bundle, compatibleWith: nil) else {
+        print("Cannot load image for pieceSet \(name): \(filename)")
+        return nil
       }
+      image = pdfImage
+      _cache.updateValue(image!, forKey: piece)
     }
     
     return image
   }
   #else
   func imageForPiece(_ piece: CTPiece, size: CGSize? = nil) -> NSImage? {
+    guard let filename = determineFilename(forSetWithName: name, piece: piece) else { return nil }
+
     // Create and return image
     var image: NSImage? = nil
-
+    
     if let cachedImg = _cache[piece] {
       image = cachedImg
     } else {
-      if let name = _configuration[piece] {
-        guard let url = bundle.url(forResource: name, withExtension: "pdf") else { return nil }
-        if let pdfImage = NSImage(contentsOf: url) {
-          image = pdfImage
-          _cache.updateValue(image!, forKey: piece)
-        }
+      if let pdfImage = NSImage(named: NSImage.Name(filename)) {
+        image = pdfImage
+        _cache.updateValue(image!, forKey: piece)
       }
     }
     
@@ -80,33 +79,15 @@ public class CTPieceSet {
   #endif
   
   // MARK: Private methods
-  
-  fileprivate func loadConfiguration() {
-    var config = Dictionary<CTPiece, String>()
+
+  fileprivate func determineFilename(forSetWithName namespace: String, piece: CTPiece) -> String? {
+    // Check piece
+    guard piece != .empty && piece != .invalid else { return nil }
     
-    let fileName = "PieceSet_\(self.name)"
-    let ext = "plist"
-    
-    if let configPath = bundle.path(forResource: fileName, ofType: ext) {
-      if let plistFile = NSDictionary(contentsOfFile: configPath) {
-        let enumerator = plistFile.keyEnumerator()
-        while let key = enumerator.nextObject() as? String {
-          let value = plistFile.object(forKey: key)! as! String
-          
-          let index = kFileNamePrefix.count
-          let pieceChar: Character = key[index]
-          
-          if let piece = CTPiece.fromFEN(pieceChar) {
-            config.updateValue(value, forKey: piece)
-          } else {
-            print("Invalid piece found.")
-          }
-        }
-      }
-    } else {
-      print("Error opening config file")
-    }
-    
-    self._configuration = config
+    let color = piece.side() == .white ? "W" : "B"
+    let pieceString = piece.toPGN() == "" ? "P" : piece.toPGN()
+    let filename = "\(namespace)/\(color)\(pieceString)"
+    return filename
   }
+  
 }
