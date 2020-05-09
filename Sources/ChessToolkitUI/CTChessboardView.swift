@@ -17,6 +17,8 @@ let kLabelYOffsetFactor: CGFloat = 0.045
 @IBDesignable
 open class CTChessboardView : ViewType {
   
+  let drawingService = ServiceFactory.createBoardDrawingService()
+  
   fileprivate var _rowLabels = [ "1", "2", "3", "4", "5", "6", "7", "8" ]
   fileprivate var _colLabels = [ "A", "B", "C", "D", "E", "F", "G", "H" ]
   
@@ -154,7 +156,7 @@ extension CTChessboardView {
   fileprivate func drawBorder() {
     if self.border {
       self.borderColor.setFill()
-      DrawingUtils.fillRectangle(self.bounds)
+      drawingService.fillRectangle(self.bounds)
     }
   }
   
@@ -170,7 +172,7 @@ extension CTChessboardView {
           self.lightSquareColor.set()
         }
         
-        DrawingUtils.fillRectangle(squareRect)
+        drawingService.fillRectangle(squareRect)
 
         if (self.squareLabels) {
           if (col == 0) {
@@ -238,11 +240,11 @@ extension CTChessboardView {
           let rect = rectForRow(row, col: col)
           if self.markingStyle == .border {
             self.markingColor.set()
-            DrawingUtils.fillRectangle(rect)
+            drawingService.fillRectangle(rect)
           } else {
             let color = self.markingColor.withAlphaComponent(self.markingAlpha)
             color.setFill()
-            DrawingUtils.fillRectangle(rect) // using CGBlendMode.normal?
+            drawingService.fillRectangle(rect) // using CGBlendMode.normal?
           }
         }
       }
