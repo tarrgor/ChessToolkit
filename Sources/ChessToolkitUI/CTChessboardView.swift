@@ -17,7 +17,7 @@ let kLabelYOffsetFactor: CGFloat = 0.045
 @IBDesignable
 open class CTChessboardView : ViewType {
   
-  let drawingService = ServiceFactory.createBoardDrawingService()
+  let drawingStrategy = PlatformFactory.drawingStrategy()
   
   fileprivate var _rowLabels = [ "1", "2", "3", "4", "5", "6", "7", "8" ]
   fileprivate var _colLabels = [ "A", "B", "C", "D", "E", "F", "G", "H" ]
@@ -135,7 +135,7 @@ extension CTChessboardView {
 extension CTChessboardView {
   // MARK: - Drawing
   
-  override open func draw(_ dirtyRect: CGRect) {
+  override open func draw(_ dirtyRect: RectType) {
     calculateSizes()
     drawBorder()
     drawSquares()
@@ -156,7 +156,7 @@ extension CTChessboardView {
   fileprivate func drawBorder() {
     if self.border {
       self.borderColor.setFill()
-      drawingService.fillRectangle(self.bounds)
+      drawingStrategy.fillRectangle(self.bounds)
     }
   }
   
@@ -164,7 +164,7 @@ extension CTChessboardView {
     // draw squares
     for row in 0...7 {
       for col in 0...7 {
-        let squareRect = rectForRow(row, col: col)
+        let squareRect = drawingStrategy.rectForRow(row, col: col, size: self.squareSize, offset: self.border ? self.borderWidth : 0.0)
         let index = row + col
         if index % 2 == 0 {
           self.darkSquareColor.set()
@@ -172,7 +172,7 @@ extension CTChessboardView {
           self.lightSquareColor.set()
         }
         
-        drawingService.fillRectangle(squareRect)
+        drawingStrategy.fillRectangle(squareRect)
 
         if (self.squareLabels) {
           if (col == 0) {
@@ -237,14 +237,14 @@ extension CTChessboardView {
           let pos = square.toRowAndColumn()
           let row = self.isBoardFlipped ? 7 - pos.row : pos.row
           let col = self.isBoardFlipped ? 7 - pos.column : pos.column
-          let rect = rectForRow(row, col: col)
+          let rect = drawingStrategy.rectForRow(row, col: col, size: self.squareSize, offset: self.border ? self.borderWidth : 0.0)
           if self.markingStyle == .border {
             self.markingColor.set()
-            drawingService.fillRectangle(rect)
+            drawingStrategy.fillRectangle(rect)
           } else {
             let color = self.markingColor.withAlphaComponent(self.markingAlpha)
             color.setFill()
-            drawingService.fillRectangle(rect) // using CGBlendMode.normal?
+            drawingStrategy.fillRectangle(rect) // using CGBlendMode.normal?
           }
         }
       }
@@ -293,15 +293,6 @@ extension CTChessboardView {
     }
     
     return (row, col)
-  }
-  
-  internal func rectForRow(_ row: Int, col: Int) -> CGRect {
-    var offset: CGFloat = 0.0
-    if self.border {
-      offset = self.borderWidth
-    }
-    let squareRect = CGRect(x: CGFloat(col) * self._squareSize + offset, y: CGFloat(7 - row) * self._squareSize + offset, width: self._squareSize, height: self._squareSize)
-    return squareRect
   }
   
   internal func rectForLocation(_ location: CGPoint, sizeAddition: CGFloat = 0) -> CGRect {
